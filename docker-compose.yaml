@@ -1,0 +1,6 @@
+services:
+  app:
+    image: github_action_parser
+    build:
+      context: .
+      target: development
