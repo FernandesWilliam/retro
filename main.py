@@ -1,7 +1,7 @@
 from github_action_parser import parse, inter_dependency_parsing
 from argparse import ArgumentParser
 
-from src.detector import Detector
+from src.parser import yaml_parse
 from src.downloader import Downloader
 from src.const import *
 
@@ -21,26 +21,22 @@ def main():
 
     # Set up the arg parser and get the args
     parser = ArgumentParser(prog="GitHub Action Analyser")
-    parser.add_argument("git_urls", nargs="+")
+    parser.add_argument("run_config")
     args = parser.parse_args()
 
+    run_config = yaml_parse(args.run_config)
+
+    logger.info("Run configuration: %s" % run_config)
+
     # Download the projects to analyse
-    Downloader(args.git_urls).download()
+    Downloader([run_config['projects'][name]['git_url'] for name in run_config['projects']]).download()
 
-    # Fetch their name and actions
-    projects = Detector().detect()
-
-    logger.info('Projects: %s' % ', '.join(projects.keys()))
-    for project, action_files in projects.items():
-        logger.info('Project %s - %s' % (project, ', '.join(action_files)))
-
-    filename = '%s/%s/%s/%s' % (TMP_DIR, 'audacity', GITHUB_ACTION_PATH, 'build.yml')
-    # up_down??
-    parse(filename, [("up_down", inter_dependency_parsing)])
-
-    filename = '%s%s/%s%s' % (TMP_DIR, 'juiceshop', GITHUB_ACTION_PATH, 'ci.yml')
-    # up_down??
-    parse(filename, [("up_down", inter_dependency_parsing)])
+    # Parse actions from the projects
+    for project in run_config['projects']:
+        for action in run_config['projects'][project]['actions']:
+            filename = '%s/%s/%s/%s' % (TMP_DIR, project, GITHUB_ACTION_PATH, action['name'])
+            logger.info('Parsing %s' % filename)
+            parse(filename, [(action_parser, inter_dependency_parsing) for action_parser in action['parsers']])
 
     logger.info("Parsing done !")
 

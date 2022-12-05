@@ -18,4 +18,4 @@ COPY *.py .
 
 COPY src src
 
-CMD ["python3", "main.py", "https://github.com/audacity/audacity.git", "https://github.com/miguelmemm16/juiceshop.git"]
+CMD ["python3", "main.py", "config/run-config.yaml"]
