@@ -3,29 +3,31 @@ import graphviz
 
 
 def parse(file_name, parsers):
-
     with open(file_name, "r") as stream:
         try:
             yml = yaml.safe_load(stream)
             for depName, parser in parsers:
-                generateGraph(file_name,parser(yml))
+                generateGraph(file_name, parser(yml))
         except yaml.YAMLError as exc:
             print(exc)
 
 
 def downloadAction(map, yml, job, step):
     if step['with']['name'] not in map.keys():
-        map[step['with']['name']] ={}
+        map[step['with']['name']] = {}
         map[step['with']['name']]['producer'] = "?"
         map[step['with']['name']]['consumer'] = []
         map[step['with']['name']]['consumer'] += [job]
-        map[step['with']['name']]['producer_prevention'] = [{'warning':'red', 'error':"Unknown Artifacts : "+job,'cause':job }]
+        map[step['with']['name']]['producer_prevention'] = [
+            {'warning': 'red', 'error': "Unknown Artifacts : " + job, 'cause': job}]
 
     elif map[step['with']['name']]['producer'] in yml['jobs'][job]['needs']:
         map[step['with']['name']]['consumer'] += [job]
     else:
         # Require to add a need
-        map[step['with']['name']]['consumer_prevention'] = [{'warning':'red', 'error':"missing needs :"+job ,'cause':job}]
+        map[step['with']['name']]['consumer_prevention'] = [
+            {'warning': 'red', 'error': "missing needs :" + job, 'cause': job}]
+
 
 def uploadAction(map, yml, job, step):
     map[step['with']['name']] = {'producer': job, 'consumer': []}
@@ -44,7 +46,7 @@ toWatch = {
 
 
 # "[ dep 1 |de p  |]"
-def generateGraph(filename,dep):
+def generateGraph(filename, dep):
     dot = graphviz.Digraph(filename=filename.split('/')[-1], format="png")
     print("dep", dep)
     for key in dep.keys():
@@ -61,11 +63,10 @@ def generateGraph(filename,dep):
 
                 dot.edge(dep[key]['producer'], prev['cause'], label=prev['error'] + key, color=prev['warning'])
 
-        else :
+        else:
             for consumer in dep[key]['consumer']:
                 dot.node(consumer)
                 dot.edge(dep[key]['producer'], consumer, label=key)
-
 
     dot.render(directory='images')
 
@@ -79,7 +80,7 @@ def inter_dependency_parsing(yml):
     extractUses = lambda yml, job: [step for step in getSteps(yml, job) if 'uses' in step and isAWatchingDep(step)]
 
     matchings = {job: extractUses(yml, job) for job in yml['jobs'].keys()}
-   # print(matchings)
+    # print(matchings)
     for matching in matchings.keys():
         for valid in matchings[matching]:
             for watch in toWatch.keys():

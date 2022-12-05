@@ -10,6 +10,7 @@ RUN pip3 install -r requirements.txt
 
 RUN apk update
 RUN apk add git
+RUN apk add graphviz
 
 COPY config config
 

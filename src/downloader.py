@@ -1,3 +1,4 @@
+from src.const import TMP_DIR
 import os.path
 import logging
 from git import Repo
@@ -5,12 +6,12 @@ from git import Repo
 
 class Downloader:
     def __init__(self, repository_path: str | list[str]):
-
         self.__git_url = repository_path
-
         self.logger = logging.getLogger(Downloader.__name__)
 
     def __download_repo(self, repo_url, output_path):
+        """Download a git repository to the output directory"""
+        # Assert that the url is a git clone url
         if '.git' not in repo_url:
             print("Given path is not a valid git url")
             return
@@ -19,7 +20,8 @@ class Downloader:
         Repo.clone_from(repo_url, output_path + repo_name)
         self.logger.debug('Downloading of %s done !' % repo_name)
 
-    def download(self, output_path: str = 'output/'):
+    def download(self, output_path: str = TMP_DIR):
+        """Download git repository"""
         if type(self.__git_url) is list:
             for repo_url in self.__git_url:
                 self.__download_repo(repo_url, output_path)

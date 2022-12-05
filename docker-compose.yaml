@@ -4,3 +4,5 @@ services:
     build:
       context: .
       target: development
+    volumes:
+      - "./images/:/app/images/"

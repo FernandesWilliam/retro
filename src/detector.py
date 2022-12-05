@@ -1,8 +1,9 @@
+from src.const import *
 import os
 
 
 class Detector:
-    def __init__(self, path: str = 'output', actions_path: str = '.github/workflows'):
+    def __init__(self, path: str = TMP_DIR, actions_path: str = GITHUB_ACTION_PATH):
         self.__path = path
         self.__actions_path = actions_path
 
