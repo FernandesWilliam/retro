@@ -1,0 +1,9 @@
+digraph {
+	build_macos_intel
+	package_macos
+	build_macos_intel -> package_macos [label="macos-intel-${{ github.run_id }}-${{ github.run_attempt }}"]
+	build_macos_arm64
+	package_macos
+	build_macos_arm64 -> package_macos [label="macos-arm64-${{ github.run_id }}-${{ github.run_attempt }}"]
+	sources
+}

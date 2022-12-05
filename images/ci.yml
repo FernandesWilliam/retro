@@ -1,0 +1,8 @@
+digraph {
+	test
+	"coverage-report"
+	test -> "coverage-report" [label="unit-test-lcov"]
+	"api-test"
+	"coverage-report"
+	"api-test" -> "coverage-report" [label="api-test-lcov"]
+}
