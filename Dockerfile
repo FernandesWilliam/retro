@@ -11,6 +11,10 @@ RUN pip3 install -r requirements.txt
 RUN apk update
 RUN apk add git
 
+COPY config config
+
 COPY *.py .
 
-CMD ["python3", "main.py", "https://github.com/audacity/audacity.git"]
+COPY src src
+
+CMD ["python3", "main.py", "https://github.com/audacity/audacity.git", "https://github.com/miguelmemm16/juiceshop.git"]
