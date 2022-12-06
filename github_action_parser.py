@@ -1,5 +1,6 @@
 import yaml
 import graphviz
+import logging
 
 
 def parse(file_name, parsers):
@@ -41,14 +42,18 @@ def getSteps(yml, job):
 toWatch = {
     'actions/upload': uploadAction,
     'actions/download': downloadAction,
-    'actions/release': 'lamdba'
+    'actions/release': lambda: ...,
 }
 
 
 # "[ dep 1 |de p  |]"
 def generateGraph(filename, dep):
-    dot = graphviz.Digraph(filename=filename.split('/')[-1], format="png")
-    print("dep", dep)
+    """Generate a graphviz image representation of a graph"""
+    logger = logging.getLogger(__name__)
+
+    final_filename = filename.split('/')[-1].replace('.yml', '.dot')
+    dot = graphviz.Digraph(filename=final_filename, format="png")
+    logger.info("Dependencies: %s" % dep)
     for key in dep.keys():
         dot.node(dep[key]['producer'])
         if 'consumer_prevention' in dep[key]:
@@ -68,7 +73,7 @@ def generateGraph(filename, dep):
                 dot.node(consumer)
                 dot.edge(dep[key]['producer'], consumer, label=key)
 
-    dot.render(directory='images')
+    logger.info('Resulting file: %s' % dot.render(directory='images'))
 
 
 def inter_dependency_parsing(yml):

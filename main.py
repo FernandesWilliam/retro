@@ -1,6 +1,7 @@
 from github_action_parser import parse, inter_dependency_parsing
 from argparse import ArgumentParser
 
+from src.model import RunConfig
 from src.parser import yaml_parse
 from src.downloader import Downloader
 from src.const import *
@@ -24,7 +25,7 @@ def main():
     parser.add_argument("run_config")
     args = parser.parse_args()
 
-    run_config = yaml_parse(args.run_config)
+    run_config: RunConfig = yaml_parse(args.run_config)
 
     logger.info("Run configuration: %s" % run_config)
 

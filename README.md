@@ -17,3 +17,8 @@ can change the behaviour by updating this file or create a new one that follows 
 ```shell
 python3 main.py config/run-config.yaml
 ```
+
+If you get trouble during image generation, you can regenerate the images using this:
+```shell
+dot -Tpng ./images/file.dot >./images/file.png
+```
