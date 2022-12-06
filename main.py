@@ -1,12 +1,46 @@
 from github_action_parser import parse, inter_dependency_parsing
+from argparse import ArgumentParser
 
-parse("./repositories/audacity/build.yml", [
-    ("up_down", inter_dependency_parsing)
+from src.model import RunConfig
+from src.parser import yaml_parse
+from src.downloader import Downloader
+from src.const import *
 
-    ])
+import logging
+import logging.config
 
 
-parse("./repositories/juicyshop/ci.yml", [
-    ("up_down", inter_dependency_parsing)
+def setup_logging():
+    """Set up the logging using the configuration file"""
+    logging.config.fileConfig('config/logging.conf')
 
-    ])
+
+def main():
+    # Set up logging and get __main__ logger
+    setup_logging()
+    logger = logging.getLogger(__name__)
+
+    # Set up the arg parser and get the args
+    parser = ArgumentParser(prog="GitHub Action Analyser")
+    parser.add_argument("run_config")
+    args = parser.parse_args()
+
+    run_config: RunConfig = yaml_parse(args.run_config)
+
+    logger.info("Run configuration: %s" % run_config)
+
+    # Download the projects to analyse
+    Downloader([run_config['projects'][name]['git_url'] for name in run_config['projects']]).download()
+
+    # Parse actions from the projects
+    for project in run_config['projects']:
+        for action in run_config['projects'][project]['actions']:
+            filename = '%s/%s/%s/%s' % (TMP_DIR, project, GITHUB_ACTION_PATH, action['name'])
+            logger.info('Parsing %s' % filename)
+            parse(filename, [(action_parser, inter_dependency_parsing) for action_parser in action['parsers']])
+
+    logger.info("Parsing done !")
+
+
+if __name__ == "__main__":
+    main()
