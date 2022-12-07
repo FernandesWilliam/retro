@@ -4,10 +4,11 @@ projects:
     actions:
       - name: "build.yml"
         parsers:
-          - "up_down"
-  juiceshop:
-    git_url: "https://github.com/miguelmemm16/juiceshop.git"
-    actions:
-      - name: "ci.yml"
-        parsers:
-          - "up_down"
+          intra: ["github_up_down"]
+
+#  juiceshop:
+#    git_url: "https://github.com/miguelmemm16/juiceshop.git"
+#    actions:
+#      - name: "ci.yml"
+#        parsers:
+#          intra: ["github_up_down"]
