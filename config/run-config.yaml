@@ -1,12 +1,14 @@
 projects:
   audacity:
-    git_url: "https://github.com/audacity/audacity.git"
+    git_url: "https://github.com/audacity/audacity"
+    branch: "master"
     actions:
       - name: "build.yml"
         parsers:
           - "up_down"
   juiceshop:
-    git_url: "https://github.com/miguelmemm16/juiceshop.git"
+    git_url: "https://github.com/miguelmemm16/juiceshop"
+    branch: "develop"
     actions:
       - name: "ci.yml"
         parsers:

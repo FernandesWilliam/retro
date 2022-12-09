@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 
 from src.model import RunConfig
 from src.parser import yaml_parse
-from src.downloader import Downloader
+from src.downloader import Downloader, FileDownloader
 from src.const import *
 
 import logging
@@ -30,12 +30,13 @@ def main():
     logger.info("Run configuration: %s" % run_config)
 
     # Download the projects to analyse
-    Downloader([run_config['projects'][name]['git_url'] for name in run_config['projects']]).download()
+    downloader: Downloader = FileDownloader(run_config)
+    downloader.download()
 
     # Parse actions from the projects
     for project in run_config['projects']:
         for action in run_config['projects'][project]['actions']:
-            filename = '%s/%s/%s/%s' % (TMP_DIR, project, GITHUB_ACTION_PATH, action['name'])
+            filename = '%s/%s/%s' % (TMP_DIR, project, action['name'])
             logger.info('Parsing %s' % filename)
             parse(filename, [(action_parser, inter_dependency_parsing) for action_parser in action['parsers']])
 

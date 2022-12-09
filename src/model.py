@@ -8,6 +8,7 @@ class _Action(TypedDict):
 
 class _Project(TypedDict):
     git_url: str
+    branch: str
     actions: list[_Action]
 
 
