@@ -1,4 +1,4 @@
-from github_action_parser import parse, inter_dependency_parsing
+#from github_action_parser import parse, inter_dependency_parsing
 from argparse import ArgumentParser
 
 from src.model import RunConfig

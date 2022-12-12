@@ -11,7 +11,9 @@ def generate_graph(file_name, graph):
     dot = graphviz.Digraph(filename=final_filename, format="png")
     logger.info(f"Creating {final_filename} images from the graph which come from {file_name}")
     for key in graph.keys():
-        graph[key].graph_loader(dot, graph[key].dep)
+        for pattern in graph[key]:
+            graph[key][pattern]['graph_loader'](dot,graph[key][pattern]['dep'])
+
     logger.info('Resulting file: %s' % dot.render(directory='images'))
 
 
@@ -28,8 +30,6 @@ def make_graph(file_name, watching_dependencies={}):
         # identifies all dependency that match with the current one evaluated
         detected_pattern = {module: modules[module].detect(yml) for module in modules.keys()}
 
-        graph[key] = {module: {'dep': modules[module].links_dependencies(yml,detected_pattern[module]),
+        graph[key] = {module: {'dep': modules[module].links_dependencies(yml, detected_pattern[module]),
                                'graph_loader': modules[module].build_graph} for module in modules.keys()}
-
-    # generate_graph(file_name, graph)
-    return graph
+    generate_graph(file_name,graph)
