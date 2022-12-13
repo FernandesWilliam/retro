@@ -32,7 +32,6 @@ def main():
     run_config: RunConfig = yaml_parse(args.run_config)
 
     logger.info("Run configuration: %s" % run_config)
-
     already_download = lambda project: exists(TMP_DIR + project + "/" + GITHUB_ACTION_PATH)
     print('res',[run_config['projects'][name]['git_url'] for name in run_config['projects'] if
                 not already_download(name)])
