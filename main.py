@@ -5,6 +5,9 @@ from src.model import RunConfig
 from src.parser import yaml_parse
 from src.downloader import Downloader
 from src.const import *
+from os.path import exists
+
+
 import os
 from src.dependency_parser.dependency_grapher import make_graph
 import logging
@@ -30,12 +33,12 @@ def main():
 
     logger.info("Run configuration: %s" % run_config)
 
-    already_download = lambda project: TMP_DIR + project + "/" + GITHUB_ACTION_PATH
-
+    already_download = lambda project: exists(TMP_DIR + project + "/" + GITHUB_ACTION_PATH)
+    print('res',[run_config['projects'][name]['git_url'] for name in run_config['projects'] if
+                not already_download(name)])
     # Download the projects to analyse
     Downloader([run_config['projects'][name]['git_url'] for name in run_config['projects'] if
                 not already_download(name)]).download()
-
     # Parse actions from the projects
     for project in run_config['projects']:
         for action in run_config['projects'][project]['actions']:

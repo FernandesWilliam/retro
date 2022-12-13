@@ -3,24 +3,27 @@ from src.dependency_parser.utils import steps, job_names
 
 def download_link(linked_dep, yml, job, action):
     download_dep = action['with']['name']
+
     # if the download dep still doesn't exist it is caused due to unknown artefact
     if download_dep not in linked_dep.keys():
         linked_dep[download_dep] = {
             'producer': 'Unknown',
-            'consumer': linked_dep[download_dep]['consumer'] + [job],
+            'consumer': [job],
             'producer_inconsistency': [
-                {'warning': 'orange', 'problem': "Artifacts Not Declared : " + job}
+                {'warning': 'orange', 'problem': f"Artifacts {download_dep} not declared : "}
             ]
         }
     elif 'needs' in yml['jobs'][job] and linked_dep[download_dep]['producer'] in yml['jobs'][job]['needs']:
         linked_dep[download_dep]['consumer'] += [job]
-
+    # In case needs are missing.
     else:
+        linked_dep[download_dep]['consumer'] += [job]
         linked_dep[download_dep]['consumer_inconsistency'] = [
-            {'warning': 'orange', 'problem': "Missing Needs " + job}
+            {'warning': 'orange', 'problem': "Missing Needs for job : " + linked_dep[download_dep]['producer']}
         ]
 
 
+# Find out every upload pattern, and store the upload as producer job
 def upload_link(linked_dep, yml, job, action):
     linked_dep[action['with']['name']] = {'producer': job, 'consumer': []}
 
@@ -31,16 +34,16 @@ pattern = {
 }
 
 
+# find if there is any pattern that match with the current configuration.
 def detect(yml):
-    # verify that a step match with a upload or download pattern
+    # verify that a step match with an upload or download pattern
     def match_with_pattern(step):
         return list(filter(lambda key: key in step['uses'], pattern.keys()))
 
-    # an array that contains all steps that match with a pattern
+    # an array of tuples that contains all steps that match with a pattern, (is_dep,relation object)
     def matching_steps(yml, job):
-        _steps = dict.fromkeys(pattern.keys(), [])
+        _steps = {patternKey: [] for patternKey in pattern.keys()}
         is_dep = False
-
         for step in steps(yml, job):
             if 'uses' not in step or len((match := match_with_pattern(step))) == 0: continue
             _steps[match[0]] += [step]
@@ -53,7 +56,7 @@ def detect(yml):
 
     return job_map
 
-
+# Run every pattern and add a new linked dependency into the linked_dep.
 def links_dependencies(yml, job_map):
     linked_dep = {}
     for job, matching_steps in job_map.items():
@@ -62,27 +65,25 @@ def links_dependencies(yml, job_map):
                 pattern[pattern_name](linked_dep, yml, job, action)
     return linked_dep
 
-def build_graph(dot,dep):
-    print(dep)
+
+def build_graph(dot, dep):
     for artefact in dep.keys():
         # append the artefact creator
-        producer=dep[artefact]['producer']
+        producer = dep[artefact]['producer']
         dot.node(producer)
+
         if 'consumer_inconsistency' in dep[artefact]:
-            print(dep[artefact]['consumer_inconsistency'])
             for inconsistency in dep[artefact]['consumer_inconsistency']:
+                for consumer in dep[artefact]['consumer']:
+                    dot.edge(producer, consumer, label=inconsistency['problem'], color=inconsistency['warning'])
 
-                dot.edge(producer, inconsistency['problem'], label=inconsistency['problem'], color= inconsistency['warning'])
-
-        if 'producer_prevention' in dep[artefact]:
-            for prev in dep[artefact]['producer_prevention']:
-                dot.node(prev['cause'])
-
-                dot.edge(dep[artefact]['producer'], prev['cause'], label=prev['error'] + artefact, color=prev['warning'])
-
+        elif 'producer_inconsistency' in dep[artefact]:
+            for inconsistency in dep[artefact]['producer_inconsistency']:
+                for consumer in dep[artefact]['consumer']:
+                    dot.edge(dep[artefact]['producer'], consumer, label=inconsistency['problem'],
+                         color=inconsistency['warning'])
+        # Normal case
         else:
             for consumer in dep[artefact]['consumer']:
                 dot.node(consumer)
                 dot.edge(dep[artefact]['producer'], consumer, label=artefact)
-
-

@@ -10,17 +10,20 @@ def generate_graph(file_name, graph):
     final_filename = file_name.split('/')[-1].replace('.yml', '.dot')
     dot = graphviz.Digraph(filename=final_filename, format="png")
     logger.info(f"Creating {final_filename} images from the graph which come from {file_name}")
+    # for each studied patterns, build a graph.
     for key in graph.keys():
         for pattern in graph[key]:
             graph[key][pattern]['graph_loader'](dot,graph[key][pattern]['dep'])
 
+    #render graph
     logger.info('Resulting file: %s' % dot.render(directory='images'))
 
 
+# This function first detects patterns of a file, then processed them and make a graph that belongs to inter and intra dependencies relation
 def make_graph(file_name, watching_dependencies={}):
     yml = yaml_parse(file_name)
     graph = {}
-
+    # dynamic import of a file, it could belong to inter package or intra
     def import_pattern(type_dep, module):
         return import_module(f"src.dependency_parser.{type_dep}_patterns.{module}")
 
@@ -32,4 +35,5 @@ def make_graph(file_name, watching_dependencies={}):
 
         graph[key] = {module: {'dep': modules[module].links_dependencies(yml, detected_pattern[module]),
                                'graph_loader': modules[module].build_graph} for module in modules.keys()}
+
     generate_graph(file_name,graph)

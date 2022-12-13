@@ -1,4 +1,4 @@
-
+# shortcuts for accessing yml values
 
 def steps(yml,job):
     return yml['jobs'][job]['steps']
