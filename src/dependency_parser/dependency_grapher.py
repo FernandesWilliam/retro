@@ -19,8 +19,9 @@ def generate_graph(file_name, graph):
     logger.info('Resulting file: %s' % dot.render(directory='images'))
 
 
-# This function first detects patterns of a file, then processed them and make a graph that belongs to inter and intra dependencies relation
 def make_graph(file_name, watching_dependencies={}):
+    """This function first detects patterns of a file, then processed them and
+    make a graph that belongs to inter and intra dependencies relation"""
     yml = yaml_parse(file_name)
     graph = {}
     # dynamic import of a file, it could belong to inter package or intra

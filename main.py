@@ -33,8 +33,7 @@ def main():
 
     logger.info("Run configuration: %s" % run_config)
     already_download = lambda project: exists(TMP_DIR + project + "/" + GITHUB_ACTION_PATH)
-    print('res',[run_config['projects'][name]['git_url'] for name in run_config['projects'] if
-                not already_download(name)])
+
     # Download the projects to analyse
     Downloader([run_config['projects'][name]['git_url'] for name in run_config['projects'] if
                 not already_download(name)]).download()

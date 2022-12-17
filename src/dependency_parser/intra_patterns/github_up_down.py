@@ -1,30 +1,33 @@
 from src.dependency_parser.utils import steps, job_names
 
 
-def download_link(linked_dep, yml, job, action):
-    download_dep = action['with']['name']
 
-    # if the download dep still doesn't exist it is caused due to unknown artefact
+def download_link(linked_dep, yml, current_job, action_step):
+
+    download_dep = action_step['with']['name']
+
+    #"If the download dependency is not satisfied, this may be due to an unknown artefact"
     if download_dep not in linked_dep.keys():
         linked_dep[download_dep] = {
             'producer': 'Unknown',
-            'consumer': [job],
+            'consumer': [current_job],
             'producer_inconsistency': [
                 {'warning': 'orange', 'problem': f"Artifacts {download_dep} not declared : "}
             ]
         }
-    elif 'needs' in yml['jobs'][job] and linked_dep[download_dep]['producer'] in yml['jobs'][job]['needs']:
-        linked_dep[download_dep]['consumer'] += [job]
+    elif 'needs' in yml['jobs'][current_job] and linked_dep[download_dep]['producer'] in yml['jobs'][current_job]['needs']:
+        linked_dep[download_dep]['consumer'] += [current_job]
     # In case needs are missing.
     else:
-        linked_dep[download_dep]['consumer'] += [job]
+        linked_dep[download_dep]['consumer'] += [current_job]
         linked_dep[download_dep]['consumer_inconsistency'] = [
-            {'warning': 'orange', 'problem': "Missing Needs for job : " + linked_dep[download_dep]['producer']}
+            {'warning': 'orange', 'problem': f"Missing Needs for {current_job} : " + linked_dep[download_dep]['producer']}
         ]
 
 
-# Find out every upload pattern, and store the upload as producer job
+
 def upload_link(linked_dep, yml, job, action):
+    """Find out every upload pattern, and store the upload as producer job"""
     linked_dep[action['with']['name']] = {'producer': job, 'consumer': []}
 
 
@@ -34,8 +37,8 @@ pattern = {
 }
 
 
-# find if there is any pattern that match with the current configuration.
 def detect(yml):
+    """find if there is any pattern that match with the current pipeline checked."""
     # verify that a step match with an upload or download pattern
     def match_with_pattern(step):
         return list(filter(lambda key: key in step['uses'], pattern.keys()))
@@ -51,13 +54,14 @@ def detect(yml):
 
         return (is_dep, _steps)
 
-    # a map which contains as key job names and as values : steps that contains a pattern actions.
+    # a map which contains as key job names and as values : steps that contains a composite pattern action : upload or download.
     job_map = {job: match[1] for job in job_names(yml) if ((match := matching_steps(yml, job))[0])}
 
     return job_map
 
-# Run every pattern and add a new linked dependency into the linked_dep.
+
 def links_dependencies(yml, job_map):
+    """Run every pattern and add a new linked dependency into the linked_dep."""
     linked_dep = {}
     for job, matching_steps in job_map.items():
         for pattern_name, actions in matching_steps.items():
