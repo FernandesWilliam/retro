@@ -1,11 +1,15 @@
-from github_action_parser import parse, inter_dependency_parsing
+#from github_action_parser import parse, inter_dependency_parsing
 from argparse import ArgumentParser
 
 from src.model import RunConfig
 from src.parser import yaml_parse
 from src.downloader import Downloader
 from src.const import *
+from os.path import exists
 
+
+import os
+from src.dependency_parser.dependency_grapher import make_graph
 import logging
 import logging.config
 
@@ -28,16 +32,17 @@ def main():
     run_config: RunConfig = yaml_parse(args.run_config)
 
     logger.info("Run configuration: %s" % run_config)
+    already_download = lambda project: exists(TMP_DIR + project + "/" + GITHUB_ACTION_PATH)
 
     # Download the projects to analyse
-    Downloader([run_config['projects'][name]['git_url'] for name in run_config['projects']]).download()
-
+    Downloader([run_config['projects'][name]['git_url'] for name in run_config['projects'] if
+                not already_download(name)]).download()
     # Parse actions from the projects
     for project in run_config['projects']:
         for action in run_config['projects'][project]['actions']:
             filename = '%s/%s/%s/%s' % (TMP_DIR, project, GITHUB_ACTION_PATH, action['name'])
             logger.info('Parsing %s' % filename)
-            parse(filename, [(action_parser, inter_dependency_parsing) for action_parser in action['parsers']])
+            make_graph(filename, action['parsers'])
 
     logger.info("Parsing done !")
 

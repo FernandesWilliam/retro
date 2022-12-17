@@ -5,3 +5,5 @@ images
 .idea
 
 *.iml
+
+tmp/
