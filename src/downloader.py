@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from src.model import RunConfig, _Project
 from os.path import exists
 from os import mkdir
+from git import Repo
 
 
 class Downloader(ABC):
@@ -58,3 +59,28 @@ class FileDownloader(Downloader):
         """Download git repository"""
         for projectname, _project in self.__projects.items():
             self.__download_artifacts_from_repository(projectname, _project, output_path)
+
+
+class RepoDownloader(Downloader):
+    """Download a repository git"""
+    def __init__(self, run_config: RunConfig):
+        self.__projects = {name: project['git_url'] for name, project in run_config['projects'].items()}
+        self.logger = logging.getLogger(Downloader.__name__)
+
+    def __download_repo(self, repo_name, repo_url, output_path):
+        """Download a git repository to the output directory"""
+        # Assert that the url is a git clone url
+        if exists(output_path + repo_name):
+            self.logger.info("Repo %s already exists, no need to download it again.", output_path + repo_name)
+            return
+
+        if '.git' not in repo_url:
+            repo_url += '.git'
+        self.logger.info("Downloading %s to %s" % (repo_url, output_path + repo_name))
+        Repo.clone_from(repo_url, output_path + repo_name)
+        self.logger.debug('Downloading of %s done !' % repo_name)
+
+    def download(self, output_path: str = TMP_DIR):
+        """Download git repository"""
+        for name, url in self.__projects.items():
+            self.__download_repo(name, url, output_path)
