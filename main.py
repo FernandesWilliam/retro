@@ -1,11 +1,15 @@
-from github_action_parser import parse, inter_dependency_parsing
+#from github_action_parser import parse, inter_dependency_parsing
 from argparse import ArgumentParser
 
 from src.model import RunConfig
 from src.parser import yaml_parse
 from src.downloader import Downloader, FileDownloader
 from src.const import *
+from os.path import exists
 
+
+import os
+from src.dependency_parser.dependency_grapher import make_graph
 import logging
 import logging.config
 
@@ -38,7 +42,7 @@ def main():
         for action in run_config['projects'][project]['actions']:
             filename = '%s/%s/%s' % (TMP_DIR, project, action['name'])
             logger.info('Parsing %s' % filename)
-            parse(filename, [(action_parser, inter_dependency_parsing) for action_parser in action['parsers']])
+            make_graph(filename, action['parsers'])
 
     logger.info("Parsing done !")
 
