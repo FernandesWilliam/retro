@@ -40,7 +40,7 @@ def main():
         for action in run_config['projects'][project]['actions']:
             filename = '%s/%s/%s/%s' % (TMP_DIR, project, GITHUB_ACTION_PATH, action['name'])
             logger.info('Parsing %s' % filename)
-            make_graph(filename, action['parsers'])
+            make_graph(filename)
 
     logger.info("Parsing done !")
 
