@@ -6,3 +6,4 @@ services:
       target: development
     volumes:
       - "./images/:/app/images/"
+      - "./projects/:/app/projects/"

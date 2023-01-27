@@ -31,7 +31,7 @@ def main():
 
     run_config: RunConfig = yaml_parse(args.run_config)
 
-    logger.info("Run configuration: %s" % run_config)
+    logger.debug("Run configuration: %s" % run_config)
     already_download = lambda project: exists(TMP_DIR + project + "/" + GITHUB_ACTION_PATH)
 
     # Download the projects to analyse

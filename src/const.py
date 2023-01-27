@@ -1,2 +1,2 @@
 GITHUB_ACTION_PATH = '.github/workflows/'
-TMP_DIR = 'tmp/'
+TMP_DIR = 'projects/'
