@@ -2,6 +2,7 @@ from src.const import TMP_DIR
 import os.path
 import logging
 from git import Repo
+from src.progressbar import GitRemoteProgress
 
 
 class Downloader:
@@ -17,10 +18,10 @@ class Downloader:
             return
         repo_name = repo_url.split(os.path.sep)[-1][:-len('.git')]
         self.logger.info("Downloading %s to %s" % (repo_url, output_path + repo_name))
-        Repo.clone_from(repo_url, output_path + repo_name)
+        Repo.clone_from(repo_url, output_path + repo_name, progress=GitRemoteProgress())
         self.logger.debug('Downloading of %s done !' % repo_name)
 
-    def download(self, output_path: str = TMP_DIR):
+    def download(self, output_path: str = f"{TMP_DIR}/"):
         """Download git repository"""
         if type(self.__git_url) is list:
             for repo_url in self.__git_url:
