@@ -1,0 +1,54 @@
+from src.dependency_parser.strategies import IntraScanStrategy
+import os
+
+
+class Strategy(IntraScanStrategy):
+    __cmds = {
+        'npm': 'package.json',
+        'mvn': 'pom.xml'
+    }
+
+    def __init__(self, project_path):
+        super().__init__(project_path)
+
+    def parse(self, job: dict, graph: dict):
+        checkout = False
+
+        for step in job['steps']:
+            if 'name' not in step:
+                step['name'] = 'Anonymous step'
+            
+            if step['name'] not in graph:
+                graph[step['name']] = []
+
+            # Does the step make a checkout
+            if 'uses' in step and 'actions/checkout' in step['uses']:
+                checkout = step['name']
+            
+            if 'run' in step:
+                self.__check_file_usage(step['name'], step['run'], checkout, graph)
+    
+    def __check_file_exists(self, _file):
+        return os.path.exists(f"{self._path}/{_file}")
+    
+    @staticmethod
+    def _dep_maker(step, checkout, dep, exists: bool, graph: dict):
+        if not checkout:
+            checkout = '?'
+        
+        deps = []
+        if checkout in graph:
+            deps = graph[checkout]
+        else:
+            graph[checkout] = deps
+        
+        deps += [(step, 'file', dep if exists else f"Missing file {dep}")]
+
+    def __check_file_usage(self, name, run, checkout, graph: dict):
+        for cmd, _file in self.__cmds.items():
+            if cmd in run:
+                self._dep_maker(name, checkout, _file, self.__check_file_exists(_file), graph)
+        
+        for arg in run.split(' '):
+            if os.path.isfile(arg):
+                self._dep_maker(name, checkout, arg, self.__check_file_exists(arg), graph)

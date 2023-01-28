@@ -19,6 +19,13 @@ def setup_logging():
     logging.config.fileConfig('config/logging.conf')
 
 
+def create_dir(path):
+    try:
+        os.makedirs(path)
+    except FileExistsError: # Avoid error if directory already created
+        pass
+
+
 def main():
     # Set up logging and get __main__ logger
     setup_logging()
@@ -47,17 +54,24 @@ def main():
         )
         scanner.parse()
 
-        graphs = scanner.get_graph()
-
-        try:
-            os.makedirs(f'results/{project}')
-        except FileExistsError: # Avoid error if directory already created
-            pass
-
-        for name, graph in graphs.items():
-            DotGraphBuilder(graph).generate(name, output_dir = f'results/{project}')
+        generate_results(project, scanner.get_results())
 
     logger.info("Parsing done !")
+
+
+def generate_results(project, results):
+    """Generate the result folder for a project"""
+    create_dir(f'results/{project}')
+
+    for action, result in results.items():
+        # Generate the inter-graph for an action
+        DotGraphBuilder(result['inter']).generate(action.replace('.yml', '-yml'), output_dir = f'results/{project}')
+        
+        action_name = action.replace('.yml', '-yml')
+        create_dir(f'results/{project}/{action_name}')
+        for job, job_result in result['intra'].items():
+            # Generate the intra-graph for a job
+            DotGraphBuilder(job_result).generate(job, output_dir = f'results/{project}/{action_name}')
 
 
 if __name__ == "__main__":

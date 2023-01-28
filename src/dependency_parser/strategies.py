@@ -8,6 +8,9 @@ class InterScanStrategy(ABC):
 
 
 class IntraScanStrategy(ABC):
+    def __init__(self, project_path):
+        self._path = project_path
+
     @abstractmethod
     def parse(self, job: dict, graph: dict):
         pass

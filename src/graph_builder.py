@@ -1,5 +1,6 @@
 from graphviz import Digraph
 from abc import ABC, abstractmethod
+import shutil
 
 
 ERROR_EDGE = '?'
@@ -21,8 +22,12 @@ class DotGraphBuilder(GraphBuilder):
     """
     __style = {
         'seq': {'style': 'dotted'},
+        # Inter-job relations
         'up/down': {'decorate': 'false'},
-        'release': {'style': 'dashed'}
+        'release': {'style': 'dashed'},
+
+        # Intra-job relations
+        'file': {'decorate': 'false'}
     }
 
     def __init__(self, data: dict[str, list[tuple]]):
@@ -32,12 +37,16 @@ class DotGraphBuilder(GraphBuilder):
         super().__init__(data)
 
     def generate(self, filename, file_format="png", output_dir='images', **kwargs):
-        graph = Digraph(filename=filename.replace('.yml', '-yml'), format=file_format, **kwargs)
+        graph = Digraph(filename=f"{filename}.dot", format=file_format, **kwargs)
 
         for node in self._data.keys():
-            graph.node(node)
+            if 'Anonymous' in node:
+                graph.node(node, color='orange')
+            else:
+                graph.node(node)
 
-        graph.node(ERROR_EDGE, shape='ellipse')
+        if ERROR_EDGE in self._data.keys():
+            graph.node(ERROR_EDGE, shape='ellipse')
 
         for node, edges in self._data.items():
             for dest, edge_type, msg in edges:
@@ -50,4 +59,6 @@ class DotGraphBuilder(GraphBuilder):
 
                 graph.edge(node, dest, xlabel=msg, **self.__style[edge_type], **style)
 
-        return graph.render(directory=output_dir)
+        resfile = graph.render(directory=output_dir)
+
+        shutil.move(resfile, resfile.replace(".dot", ''))

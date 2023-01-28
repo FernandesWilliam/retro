@@ -24,7 +24,7 @@ class Scanner:
         self._path = project_path
         self._actions = actions
 
-        self._graph = {}
+        self._results = {}
 
         self._logger = getLogger(Scanner.__name__)
 
@@ -57,19 +57,31 @@ class Scanner:
     def parse(self):
         """Parse the project to build a dependency graph"""
         for action in self._actions:
-            self._graph[action] = self._parse_file(f"{GITHUB_ACTION_PATH}/{action}")
+            self._results[action] = self._parse_file(f"{GITHUB_ACTION_PATH}/{action}")
     
     def _parse_file(self, action):
         self._logger.info(f"Parsing {action}")
         yml = yaml_parse(f"{self._path}/{action}")
-        graph = {}
+        result = {
+            'inter': {}, # For a new graph
+            'intra': {}  # To bind each intra-graph to a name
+        }
 
         for inter_pattern in self._inter:
-            self._instanciate_inter_strategy(inter_pattern).parse(yml['jobs'], graph)
+            self._instanciate_inter_strategy(inter_pattern).parse(yml['jobs'], result['inter'])
 
-        # self._logger.info(f"Graph: {graph}")
+        for name, job in yml['jobs'].items():
+            result['intra'][name] = self._parse_job(job)
+            
+        return result
+    
+    def _parse_job(self, job):
+        graph = {}
 
+        for intra_pattern in self._intra:
+            self._instanciate_intra_strategy(intra_pattern, self._path).parse(job, graph)
+        
         return graph
 
-    def get_graph(self, action=None):
-        return self._graph if action is None else self._graph[action]
+    def get_results(self, action=None):
+        return self._results if action is None else self._results[action]
