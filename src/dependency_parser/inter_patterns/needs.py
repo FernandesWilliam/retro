@@ -1,4 +1,21 @@
 from src.dependency_parser.utils import job_names
+from src.dependency_parser.strategies import InterScanStrategy
+
+
+class Strategy(InterScanStrategy):
+    @staticmethod
+    def _get_dependencies(job):
+        return job['needs'] if 'needs' in job else []
+
+    def parse(self, jobs: dict, graph: dict):
+        for name, job in jobs.items():
+            deps = []
+            if name in graph:
+                deps = graph[name]
+            else:
+                graph[name] = deps
+            
+            deps += [(need, 'seq', '') for need in self._get_dependencies(job)]
 
 
 def detect(yml):

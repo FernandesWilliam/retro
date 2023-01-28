@@ -1,5 +1,67 @@
 from src.dependency_parser.utils import steps, job_names
+from src.dependency_parser.strategies import InterScanStrategy
 
+
+class Strategy(InterScanStrategy):
+    @staticmethod
+    def __get_download_dependencies(steps: list):
+        return [
+            step['with']['name'] if 'name' in step['with'] else '??'
+            for step in steps if 'uses' in step and 'actions/download-artifact' in step['uses']
+        ]
+
+    @staticmethod
+    def __get_uploaded_artifacts(steps: list):
+        return [
+            step['with']['name'] if 'name' in step['with'] else '??'
+            for step in steps if 'uses' in step and 'actions/upload-artifact' in step['uses']
+        ]
+
+
+    @staticmethod
+    def __get_possible_uploaders(artifact: str, applicants: dict):
+        return [name for name, data in applicants.items() if artifact in data['uploads']]
+
+    @staticmethod
+    def __reduce_github_vars(artifact_name: str):
+        return artifact_name.replace('${{ github.', '{').replace(' }}', '}')
+    
+    @staticmethod
+    def __add_dep(uploader, downloader, message, graph: dict):
+        deps = []
+        if uploader in graph:
+            deps = graph[uploader]
+        else:
+            graph[uploader] = deps
+        
+        deps += [(downloader, 'up/down', message)]
+
+    def parse(self, jobs: dict, graph: dict):
+        job_data = {}
+
+        for name, job in jobs.items():
+            job_data[name] = {
+                # Which atifacts are needed by the job
+                'downloads': self.__get_download_dependencies(job['steps']),
+                # # Which jobs must be run before this job
+                'needs': job['needs'] if 'needs' in job else [],
+                # Which atifacts are produced by the job
+                'uploads': self.__get_uploaded_artifacts(job['steps'])
+            }
+        
+        for name, data in job_data.items():
+            for dl_dep in data['downloads']:
+                uploaders = self.__get_possible_uploaders(dl_dep, job_data)
+                dep = self.__reduce_github_vars(dl_dep)
+
+                if not uploaders:
+                    self.__add_dep('?', name, dep, graph)
+
+                for uploader in uploaders:
+                    if uploader in data['needs']:
+                        self.__add_dep(uploader, name, dep, graph)
+                    else:
+                        self.__add_dep(uploader, name, f"{dep} (need missing)", graph)
 
 
 def download_link(linked_dep, yml, current_job, action_step):

@@ -32,7 +32,7 @@ class DotGraphBuilder(GraphBuilder):
         super().__init__(data)
 
     def generate(self, filename, file_format="png", output_dir='images', **kwargs):
-        graph = Digraph(filename=filename, format=file_format, **kwargs)
+        graph = Digraph(filename=filename.replace('.yml', '-yml'), format=file_format, **kwargs)
 
         for node in self._data.keys():
             graph.node(node)
