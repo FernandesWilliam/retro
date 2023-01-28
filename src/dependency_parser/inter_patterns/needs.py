@@ -15,7 +15,11 @@ class Strategy(InterScanStrategy):
             else:
                 graph[name] = deps
             
-            deps += [(need, 'seq', '') for need in self._get_dependencies(job)]
+            needs = self._get_dependencies(job)
+            if type(needs) is str:
+                deps += [(needs, 'seq', '')]
+            else:
+                deps += [(need, 'seq', '') for need in needs]
 
 
 def detect(yml):
