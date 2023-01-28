@@ -42,9 +42,9 @@ class DotGraphBuilder(GraphBuilder):
 
         for node in self._data.keys():
             if 'Anonymous' in node:
-                graph.node(node, color='orange')
+                graph.node(node, color='orange', shape='rect')
             else:
-                graph.node(node)
+                graph.node(node, shape='rect')
 
         if ERROR_EDGE in self._data.keys():
             graph.node(ERROR_EDGE, shape='ellipse')
