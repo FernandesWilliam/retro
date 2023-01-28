@@ -31,9 +31,8 @@ class Scanner:
         # Get the parsing strategies
         self._inter, self._intra = _get_parsing_strategies()
 
-        self._logger.info(f"Strategies: {self._inter}, {self._intra}")
-
-        self._logger.info("[Project %s](%s)" % (self._project, self._path))
+        self._logger.info("Project %s" % (self._project))
+        self._logger.debug(f"Strategies: {self._inter}, {self._intra}")
 
         # If no action are given to parse
         if actions == []:
@@ -60,7 +59,7 @@ class Scanner:
             self._results[action] = self._parse_file(f"{GITHUB_ACTION_PATH}/{action}")
     
     def _parse_file(self, action):
-        self._logger.info(f"Parsing {action}")
+        self._logger.debug(f"Parsing {action}")
         yml = yaml_parse(f"{self._path}/{action}")
         result = {
             'inter': {}, # For a new graph

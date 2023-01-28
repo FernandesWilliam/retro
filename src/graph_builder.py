@@ -27,7 +27,8 @@ class DotGraphBuilder(GraphBuilder):
         'release': {'style': 'dashed'},
 
         # Intra-job relations
-        'file': {'decorate': 'false'}
+        'file': {'decorate': 'false'},
+        'lang': {'style': 'dashed'}
     }
 
     def __init__(self, data: dict[str, list[tuple]]):
