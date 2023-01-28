@@ -2,10 +2,22 @@ from src.dependency_parser.strategies import IntraScanStrategy
 import os
 
 
+def file4dockercompose(cmd, default = 'docker-compose.yml', options = ['-f', '--file']):
+    res = []
+    cmd = cmd.split(' ')
+
+    for i in range(len(cmd)):
+        if cmd[i] in options: # Then the following arg is a custom file usage
+            res += [cmd[i + 1]]
+
+    return res if res else [default]
+
+
 class Strategy(IntraScanStrategy):
     __cmds = {
         'npm': 'package.json',
-        'mvn': 'pom.xml'
+        'mvn': 'pom.xml',
+        'docker-compose': file4dockercompose
     }
 
     def __init__(self, project_path):
@@ -49,7 +61,12 @@ class Strategy(IntraScanStrategy):
     def __check_file_usage(self, name, run, checkout, graph: dict):
         for cmd, _file in self.__cmds.items():
             if cmd in run:
-                self._dep_maker(name, checkout, _file, self.__check_file_exists(_file), graph)
+                if type(_file) is str:
+                    self._dep_maker(name, checkout, _file, self.__check_file_exists(_file), graph)
+                else:
+                    files = _file(run)
+                    for f in files:
+                        self._dep_maker(name, checkout, f, self.__check_file_exists(f), graph)
         
         run = run.replace("\n", " ")
         for arg in run.split(' '):
