@@ -4,7 +4,7 @@ import os
 
 # Those methods / keywords comes with Ubuntu and will not be treated yet
 excluded_methods = [
-    'cd', 'cp',
+    'cd', 'cp', 'mv'
     'if', 'else', 'fi', 
     'ls',
     'echo',
@@ -42,7 +42,7 @@ class Strategy(IntraScanStrategy):
     def parse(self, job: dict, graph: dict):
         for step in job['steps']:
             if 'name' not in step:
-                step['name'] = 'Anonymous step'
+                step['name'] = step['id'] if 'id' in step else (step['uses'] if 'uses' in step else 'Anonymous step')
 
             if step['name'] not in graph:
                 graph[step['name']] = []
