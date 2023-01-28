@@ -42,13 +42,16 @@ class Strategy(IntraScanStrategy):
         else:
             graph[checkout] = deps
         
-        deps += [(step, 'file', dep if exists else f"Missing file {dep}")]
+        link = (step, 'file', dep if exists else f"Missing file {dep}")
+        if link not in deps:
+            deps += [link]
 
     def __check_file_usage(self, name, run, checkout, graph: dict):
         for cmd, _file in self.__cmds.items():
             if cmd in run:
                 self._dep_maker(name, checkout, _file, self.__check_file_exists(_file), graph)
         
+        run = run.replace("\n", " ")
         for arg in run.split(' '):
-            if os.path.isfile(arg):
+            if os.path.isfile(f"{self._path}/{arg}"):
                 self._dep_maker(name, checkout, arg, self.__check_file_exists(arg), graph)
