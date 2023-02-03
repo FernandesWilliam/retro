@@ -5,9 +5,16 @@ e
 python -m pip install -r requirements.txt
 ```
 
+## Build Docker image
+```shell
+docker build -t github_action_parser:latest .
+```
+
 ## Execution
 ```shell
 docker-compose up
+# Or
+./run.sh config_file.yml
 ```
 
 By default, the application follows the behaviour described in [config/run-config.yaml](./config/run-config.yaml). You 
