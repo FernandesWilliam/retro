@@ -6,6 +6,13 @@ class Strategy(InterScanStrategy):
     @staticmethod
     def _get_dependencies(job):
         return job['needs'] if 'needs' in job else []
+    
+    @staticmethod
+    def _get_node(node, graph):
+        if node not in graph:
+            graph[node] = []
+        
+        return graph[node]
 
     def parse(self, jobs: dict, graph: dict):
         for name, job in jobs.items():
@@ -17,9 +24,16 @@ class Strategy(InterScanStrategy):
             
             needs = self._get_dependencies(job)
             if type(needs) is str:
-                deps += [(needs, 'seq', '')]
+                deps = self._get_node(needs, graph)
+                deps += [(name, 'seq', '')]
+                graph[needs] = deps
+                # deps += [(needs, 'seq', '')]
             else:
-                deps += [(need, 'seq', '') for need in needs]
+                for need in needs:
+                    deps = self._get_node(need, graph)
+                    deps += [(name, 'seq', '')]
+                    graph[need] = deps
+                # deps += [(need, 'seq', '') for need in needs]
 
 
 def detect(yml):

@@ -24,7 +24,7 @@ excluded_methods = [
 
 setup_effects = {
     'actions/setup-node': [
-        'npm'
+        'npm', 'node'
     ],
     'actions/setup-python': [
         'python'

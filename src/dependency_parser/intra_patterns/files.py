@@ -1,6 +1,6 @@
 from src.dependency_parser.strategies import IntraScanStrategy
 import os
-
+from logging import getLogger
 
 def file4dockercompose(cmd, default = 'docker-compose.yml', options = ['-f', '--file']):
     res = []
@@ -15,13 +15,17 @@ def file4dockercompose(cmd, default = 'docker-compose.yml', options = ['-f', '--
 
 class Strategy(IntraScanStrategy):
     __cmds = {
-        'npm': 'package.json',
+        'npm i': 'package.json', # Will be detected in the case of a `npm install`
+        'npm run': 'package.json', # Will be detected in the case of a `npm install`
+        'npm ci': ['package.json', 'package-lock.json'],
+        'npm clean-install': ['package.json', 'package-lock.json'],
         'mvn': 'pom.xml',
         'docker-compose': file4dockercompose
     }
 
     def __init__(self, project_path):
         super().__init__(project_path)
+        self._logger = getLogger(Strategy.__name__)
 
     def parse(self, job: dict, graph: dict):
         checkout = False
@@ -63,6 +67,9 @@ class Strategy(IntraScanStrategy):
             if cmd in run:
                 if type(_file) is str:
                     self._dep_maker(name, checkout, _file, self.__check_file_exists(_file), graph)
+                elif type(_file) is list:
+                    for f in _file:
+                        self._dep_maker(name, checkout, f, self.__check_file_exists(f), graph)
                 else:
                     files = _file(run)
                     for f in files:

@@ -61,6 +61,8 @@ class DotGraphBuilder(GraphBuilder):
                 style = {}
                 if dest == ERROR_EDGE:
                     style['color'] = 'orange'
+                elif node == ERROR_EDGE:
+                    style['color'] = 'orange'
 
                 if "Missing" in msg or 'Unknown' in msg:
                     style['color'] = 'red'
